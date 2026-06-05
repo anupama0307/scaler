@@ -1,0 +1,27 @@
+{
+  "name": "anupama-ai-chat",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
+    "@vapi-ai/web": "^2.5.2",
+    "ai": "^6.0.197",
+    "next": "14.2.30",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.29",
+    "typescript": "^5"
+  }
+}
