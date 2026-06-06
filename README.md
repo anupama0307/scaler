@@ -66,11 +66,11 @@ flowchart TD
 |----------|-----------------|----------|
 | `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com) | Gemini 1.5 Flash — chat & voice LLM (or Anthropic Claude) |
 | `VAPI_API_KEY` | [dashboard.vapi.ai](https://dashboard.vapi.ai) | Creating / managing the voice assistant |
-| `VOICE_FUNCTIONS_URL` | Your Railway / Vercel deployment URL | Vapi webhook endpoint base URL |
+| `VOICE_FUNCTIONS_URL` | Your Vercel deployment URL | Vapi webhook endpoint base URL |
 | `CAL_COM_API_KEY` | [cal.com/settings/developer/api-keys](https://cal.com/settings/developer/api-keys) | Fetching slots & creating bookings |
 | `CAL_COM_USERNAME` | Your Cal.com profile slug | Identifying your event types |
 | `ELEVENLABS_API_KEY` | [elevenlabs.io](https://elevenlabs.io) | (Managed by Vapi; add if using directly) |
-| `CHROMA_PERSIST_DIR` | Local path or Railway volume mount | Chroma vector store location |
+| `CHROMA_PERSIST_DIR` | Local path | Chroma vector store location |
 
 ---
 
@@ -79,7 +79,6 @@ flowchart TD
 ### 1. Prerequisites
 - Node.js 18+, Python 3.11+
 - A [Vercel](https://vercel.com) account (free hobby tier)
-- A [Railway](https://railway.app) account (free 500 hr/mo tier)
 
 ### 2. Initialization & Config
 ```bash
@@ -125,22 +124,12 @@ python create_assistant.py
 
 ## 🌐 Production Deployment
 
-### Chat UI → Vercel
+### Full Stack Deployment → Vercel
 1. Push the repo to GitHub.
 2. Go to Vercel and **Import** your repository.
-3. Set **Root Directory** to `chat-ui` and add environment variables from `.env.local`.
+3. Set **Root Directory** to `chat-ui` and add environment variables from `.env.local` (including `CAL_COM_API_KEY`, etc.).
 4. Click **Deploy**.
-
-### RAG API → Railway
-1. Go to Railway → **New Project** → **Deploy from GitHub repo**.
-2. Set **Root Directory** to `rag`. Add env vars (`CHROMA_PERSIST_DIR`, etc.).
-3. Set the **Start Command** to: `uvicorn api:app --host 0.0.0.0 --port $PORT`
-
-### Voice Function Service → Railway
-1. Add a **second Railway service** in the same project.
-2. Set **Root Directory** to `voice/functions`. Add `CAL_COM_API_KEY`, `CAL_COM_USERNAME`.
-3. Set the **Start Command** to: `uvicorn book_meeting:app --host 0.0.0.0 --port $PORT`
-4. Copy the public URL → set as `VOICE_FUNCTIONS_URL` in `.env.local` → run `python create_assistant.py --update`.
+5. Copy your Vercel URL, set it as `VOICE_FUNCTIONS_URL` in `.env.local`, and run `python create_assistant.py --update` to link Vapi to your Vercel deployment.
 
 ---
 
@@ -154,7 +143,7 @@ python create_assistant.py
 | ElevenLabs TTS | $0.30 / 1K chars | ~800 chars/turn | ~$0.04 / turn |
 | Deepgram STT (via Vapi) | $0.0059 / min | included in Vapi | included |
 | **Per voice call (5 min)** | | | **~$0.50 / call** |
-| Infrastructure (Vercel/Railway) | Free | — | **$0** |
+| Infrastructure (Vercel) | Free | — | **$0** |
 
 ---
 
