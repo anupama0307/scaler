@@ -25,6 +25,7 @@ async function getSlots(): Promise<string[]> {
 
   const res = await fetch(`https://api.cal.com/v2/slots?${params}`, {
     headers: getCalHeaders('2024-09-04'),
+    next: { revalidate: 60 },
   });
 
   if (!res.ok) return [];
