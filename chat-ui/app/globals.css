@@ -311,6 +311,57 @@ body {
   box-shadow: var(--shadow-glow);
 }
 
+/* ─── Prominent Voice Call Button ─────────────────────────────── */
+.voice-call-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(139,92,246,0.15));
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  animation: pulse-violet-soft 3s infinite;
+}
+
+.voice-call-btn:hover {
+  background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(139,92,246,0.3));
+  border-color: rgba(139, 92, 246, 0.8);
+  color: #ede9fe;
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(139,92,246,0.35);
+}
+
+.voice-call-btn.call-active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  animation: pulse-red 2s infinite;
+}
+
+.voice-call-btn.call-loading {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.4);
+  color: var(--accent-violet);
+  animation: pulse-violet 1.5s infinite;
+}
+
+.voice-call-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@keyframes pulse-violet-soft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+  50% { box-shadow: 0 0 12px 2px rgba(139,92,246,0.2); }
+}
+
 .call-active {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
@@ -725,6 +776,62 @@ body {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 16px;
+}
+
+/* ─── Date Picker Grid ─────────────────────────────────────────── */
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.date-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.date-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-violet);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+.date-btn.selected {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: var(--accent-violet);
+  color: var(--accent-violet-2);
+}
+
+.date-btn-day {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-violet-2);
+}
+
+.date-btn-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.date-btn-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .slots-grid {

@@ -293,14 +293,16 @@ export default function ChatInterface() {
           <button
             onClick={toggleCall}
             disabled={callStatus === 'loading'}
-            className={`icon-btn ${callStatus === 'active' ? 'call-active' : callStatus === 'loading' ? 'call-loading' : ''}`}
-            title={callStatus === 'active' ? 'End call' : 'Start web voice call'}
-            aria-label={callStatus === 'active' ? 'End call' : 'Start web voice call'}
+            className={`voice-call-btn ${callStatus === 'active' ? 'call-active' : callStatus === 'loading' ? 'call-loading' : ''}`}
+            title={callStatus === 'active' ? 'End voice call' : 'Start live voice call — works from any browser!'}
+            aria-label={callStatus === 'active' ? 'End voice call' : 'Start live voice call'}
           >
             {callStatus === 'loading' ? (
-              <span className="live-dot" />
+              <><span className="live-dot" /> Connecting…</>
+            ) : callStatus === 'active' ? (
+              <><PhoneIcon /> End Call</>
             ) : (
-              <PhoneIcon />
+              <><PhoneIcon /> 🎙️ Try Voice Call</>
             )}
           </button>
         </div>

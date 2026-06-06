@@ -45,7 +45,7 @@ export async function GET() {
   try {
     const username = process.env.CAL_COM_USERNAME ?? 'anupama-nair';
     const eventTypeSlug = process.env.CAL_COM_EVENT_TYPE_SLUG ?? 'scalar-interview';
-    const { startTime, endTime } = getNextNDays(7);
+    const { startTime, endTime } = getNextNDays(14);
 
     const params = new URLSearchParams({
       username,
@@ -73,15 +73,13 @@ export async function GET() {
 
     const data = (await res.json()) as CalComSlotsResponse;
 
-    // Flatten slots map into an array of ISO strings, take first 5
+    // Return all available slots across all days
     const allSlots: string[] = [];
     for (const daySlots of Object.values(data.data ?? {})) {
       if (!Array.isArray(daySlots)) continue;
       for (const slot of daySlots as CalComSlot[]) {
         allSlots.push(slot.start);
-        if (allSlots.length >= 5) break;
       }
-      if (allSlots.length >= 5) break;
     }
 
     return NextResponse.json({ slots: allSlots });
