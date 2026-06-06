@@ -82,19 +82,61 @@ function formatSlot(iso: string): string {
 // ─── POST: Handle Vapi function calls ─────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
-      message?: {
-        type: string;
-        functionCall?: {
-          name: string;
-          parameters: Record<string, string>;
-        };
-      };
-    };
-
+    const body = await req.json() as any;
     const message = body.message;
 
-    // Vapi sends a "function-call" message type when it wants to execute a function
+    // Vapi's new format uses "tool-calls"
+    if (message?.type === 'tool-calls' && (message.toolCallList || message.toolCalls)) {
+      const toolCalls = message.toolCallList || message.toolCalls;
+      const results = [];
+
+      for (const call of toolCalls) {
+        // Handle both flattened toolCallList and OpenAI-spec toolCalls
+        const name = call.name || call.function?.name;
+        let parameters = call.arguments || call.function?.arguments;
+        
+        // Ensure parameters is parsed
+        if (typeof parameters === 'string') {
+          try {
+            parameters = JSON.parse(parameters);
+          } catch (e) {
+            parameters = {};
+          }
+        }
+
+        if (name === 'get_available_slots') {
+          const slots = await getSlots();
+          let resultMessage = '';
+          if (slots.length === 0) {
+            resultMessage = 'No available slots found in the next 7 days. Please ask the caller to check back later.';
+          } else {
+            const formatted = slots.map((s, i) => `${i + 1}. ${formatSlot(s)}`).join(', ');
+            resultMessage = `Here are the available slots: ${formatted}. Please ask the caller which one they prefer.`;
+          }
+          results.push({
+            toolCallId: call.id,
+            result: resultMessage
+          });
+        } else if (name === 'book_meeting') {
+          const { slot_start, caller_name, caller_email } = parameters;
+          const success = await bookMeeting(slot_start, caller_name, caller_email);
+          let resultMessage = '';
+          if (success) {
+            resultMessage = `Great! I've successfully booked a meeting for ${caller_name} at ${formatSlot(slot_start)}. A confirmation has been sent to ${caller_email}. Is there anything else I can help you with?`;
+          } else {
+            resultMessage = 'I was unable to book that slot. It may have just been taken. Would you like to try a different time?';
+          }
+          results.push({
+            toolCallId: call.id,
+            result: resultMessage
+          });
+        }
+      }
+
+      return NextResponse.json({ results });
+    }
+
+    // Fallback for Vapi's legacy "function-call" format
     if (message?.type === 'function-call' && message.functionCall) {
       const { name, parameters } = message.functionCall;
 
@@ -126,7 +168,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // For all other Vapi events (call-start, call-end, etc.), just acknowledge
+    // For all other Vapi events (call-start, call-end, status-update, etc.), just acknowledge
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error('[/api/vapi/webhook] Error:', err);

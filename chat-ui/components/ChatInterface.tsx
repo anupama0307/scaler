@@ -11,6 +11,7 @@ import React, {
 import TypingIndicator from './TypingIndicator';
 import BookingWidget from './BookingWidget';
 import Vapi from '@vapi-ai/web';
+import ReactMarkdown from 'react-markdown';
 
 // ─── Types ────────────────────────────────────────────────────────
 interface Message {
@@ -380,7 +381,9 @@ export default function ChatInterface() {
             ) : (
               <>
                 <div className="bubble-ai">
-                  {msg.content || (
+                  {msg.content ? (
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  ) : (
                     <span style={{ opacity: 0.4, fontStyle: 'italic' }}>Thinking…</span>
                   )}
                 </div>

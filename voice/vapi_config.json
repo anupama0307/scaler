@@ -56,5 +56,5 @@
   "endCallFunctionEnabled": true,
   "recordingEnabled": false,
   "hipaaEnabled": false,
-  "serverUrl": "${VOICE_FUNCTIONS_URL}/vapi/webhook"
+  "serverUrl": "${VOICE_FUNCTIONS_URL}/api/vapi/webhook"
 }
