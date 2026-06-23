@@ -188,7 +188,7 @@ def main() -> None:
         print("\n=== Summary ===")
         print(f"  Assistant ID  : {assistant_id}")
         print(f"  Phone Number  : {phone_number}")
-        print(f"  Webhook URL   : {VOICE_FUNCTIONS_URL}/vapi/webhook")
+        print(f"  Webhook URL   : {VOICE_FUNCTIONS_URL}/api/vapi/webhook")
 
 
 if __name__ == "__main__":

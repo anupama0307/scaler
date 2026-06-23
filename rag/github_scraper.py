@@ -12,11 +12,14 @@ from typing import Optional
 import requests
 from langchain_core.documents import Document
 
-# Default repos for Anupama Nair
+# Default repos for Anupama Nair (used only if GITHUB_REPOS env var is unset)
 DEFAULT_REPOS = [
-    "anupama0307/RISKOFF",
+    "anupama0307/cheff",
     "anupama0307/LeafLift",
-    "anupama0307/GemChef",
+    "anupama0307/Debuggers",
+    "anupama0307/Gemini_hackathon",
+    "anupama0307/axiom",
+    "anupama0307/AIntStopping",
 ]
 
 GITHUB_API_BASE = "https://api.github.com"

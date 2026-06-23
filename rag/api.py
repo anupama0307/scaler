@@ -60,17 +60,19 @@ app = FastAPI(
     title="Anupama Nair — Persona RAG API",
     description=(
         "Retrieval-Augmented Generation API for the Anupama Nair AI persona. "
-        "Backs the Scaler AI Engineer Intern application chatbot."
+        "Backs the personal AI chatbot that helps people get to know Anupama."
     ),
     version="1.0.0",
     lifespan=lifespan,
 )
 
-# CORS — allow all origins (required for Vercel frontend)
+# CORS — allow all origins (required for Vercel frontend).
+# allow_credentials must be False when origins is "*" (browsers reject the
+# wildcard + credentials combination), and this API does not use cookies.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

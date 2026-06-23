@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # ─── Deploy the Next.js chat UI to Vercel ───────────────────────
+  # Runs only on main and only when the Vercel secrets are configured.
+  deploy-chat-ui:
+    name: Deploy Chat UI → Vercel
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Guard — verify Vercel secrets exist
+        id: guard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "Vercel secrets are not configured; skipping deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        if: steps.guard.outputs.ready == 'true'
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        if: steps.guard.outputs.ready == 'true'
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build project artifacts
+        if: steps.guard.outputs.ready == 'true'
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        if: steps.guard.outputs.ready == 'true'
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

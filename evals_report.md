@@ -1,4 +1,4 @@
-# Evaluation Report: AI Engineer Intern Assessment
+# Evaluation Report: Anupama Nair — Personal AI Chatbot
 
 ## 1. Evaluation Metrics
 
@@ -32,7 +32,7 @@ When designing this system, several key tradeoffs were made to balance performan
 
 - **Gemini 2.5 Flash vs. GPT-4o / Claude 3.5:** Gemini Flash was chosen as the core LLM because it provides an exceptional balance of extremely low latency (crucial for real-time voice agents) and generous free-tier rate limits, whereas GPT-4o would incur higher costs and Claude 3.5 lacked the same speed for voice.
 - **Client-Side vs. Server-Side Vapi Integration:** The Vapi Web SDK was integrated directly on the client-side (`ChatInterface.tsx`). This reduces server load and latency by establishing a direct WebRTC peer-to-peer connection between the user's browser and Vapi's servers, trading off some security (exposing the Public Key) for significantly better audio performance.
-- **In-Memory vs. Vector Database RAG:** For this MVP, context is provided via a dense system prompt and lightweight retrieval rather than a heavy, dedicated Vector DB (like Pinecone). This trades off the ability to scale to millions of documents for extreme simplicity and zero latency.
+- **ChromaDB vs. Managed Vector DB (Pinecone/Supabase):** For this MVP, embeddings are stored in a local, persistent ChromaDB collection rather than a managed service like Pinecone. ChromaDB requires zero external infrastructure and runs in-process, trading off horizontal scalability and multi-tenant durability for simplicity and zero hosting cost — a sensible choice for a single-persona corpus.
 
 ---
 
@@ -40,7 +40,7 @@ When designing this system, several key tradeoffs were made to balance performan
 
 To take this project from an MVP to a robust production system, the following improvements are planned:
 
-1. **Semantic Chunking & Vector DB Integration:** Migrate the RAG system to use a proper vector database (e.g., Supabase pgvector or Pinecone) with semantically chunked text embeddings to allow querying across thousands of GitHub repositories simultaneously.
+1. **Scaling the Vector Store:** Migrate from local ChromaDB to a managed vector database (e.g., Supabase pgvector or Pinecone) with finer-grained semantic chunking to allow querying across thousands of GitHub repositories simultaneously.
 2. **Multi-Turn Calendar Negotiations:** Currently, the AI provides a link/widget to book a time. In the future, the Voice Agent will be upgraded to use function calling to negotiate the time *verbally* (e.g., "Are you free next Tuesday at 3 PM?") and book it automatically in the background.
 3. **Automated Evals Framework:** Implement an automated LLM-as-a-Judge evaluation pipeline (using LangSmith or Braintrust) to programmatically test the AI against a golden dataset of 100 common recruiter questions before every deployment.
 4. **Custom Voice Cloning:** Upgrade the ElevenLabs TTS integration to use a custom-cloned voice of Anupama to create a truly personalized AI representative experience.

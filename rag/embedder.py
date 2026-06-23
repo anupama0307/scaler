@@ -4,7 +4,7 @@ embedder.py
 Uses Google Gemini API for embeddings.
 Model: models/text-embedding-004
 Dimension: 768
-Requires: GEMINI_API_KEY in environment
+Requires: GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) in environment
 """
 
 from math import ceil
@@ -14,28 +14,18 @@ import time
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load env
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '../../.env.local'))
+# Load env — prefer repo-root .env.local, then rag/.env.local, then default search
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '../.env.local'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env.local'))
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_GENERATIVE_AI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 
-MODEL_NAME = "models/gemini-embedding-001"
+MODEL_NAME = "models/text-embedding-004"
 EMBEDDING_DIM = 768
 BATCH_SIZE = 20  # Gemini allows up to 100 per batch
 COST_PER_MILLION_TOKENS = 0.0  # free tier
-
-
-def _encode_batch(texts: List[str]) -> List[List[float]]:
-    """Embed a single batch using Gemini embed_content."""
-    result = genai.embed_content(
-        model=MODEL_NAME,
-        content=texts,
-        task_type="retrieval_document",
-    )
-    return result["embedding"] if len(texts) == 1 else result["embedding"]
 
 
 def embed_documents(texts: List[str]) -> List[List[float]]:
@@ -49,7 +39,6 @@ def embed_documents(texts: List[str]) -> List[List[float]]:
         f"[Embedder] Embedding {len(texts)} document(s) in {n_batches} batch(es). "
         f"~{total_tokens:,} tokens | Gemini text-embedding-004."
     )
-
     all_embeddings: List[List[float]] = []
     for i in range(n_batches):
         batch = texts[i * BATCH_SIZE: (i + 1) * BATCH_SIZE]

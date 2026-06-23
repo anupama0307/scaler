@@ -27,7 +27,7 @@ PERSONA_DOCS: list[Document] = [
             "Email: anupamanairmail@gmail.com\n"
             "LinkedIn: https://www.linkedin.com/in/anupama-vinod-nair\n"
             "GitHub: https://github.com/anupama0307\n"
-            "Role target: AI Engineer Intern at Scaler\n"
+            "Interests: AI engineering, machine learning, and building intelligent systems\n"
             "I am a Computer Science student passionate about machine learning, "
             "AI engineering, and building intelligent systems."
         ),

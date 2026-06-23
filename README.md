@@ -1,14 +1,14 @@
 <div align="center">
-  <h1>Anupama Nair — AI Engineering Portfolio Agent</h1>
-  <p><b>Scaler AI Systems Engineering Intern Screening Assignment</b></p>
-  <p><i>A dual-conversational AI orchestration framework featuring real-time voice synthesis and grounded cross-repository RAG.</i></p>
+  <h1>Anupama Nair — Personal AI Chatbot</h1>
+  <p><b>An AI agent that helps anyone get to know Anupama Nair</b></p>
+  <p><i>A dual-conversational AI portfolio agent featuring real-time voice synthesis and grounded cross-repository RAG.</i></p>
 </div>
 
 ---
 
 ## 📌 Executive Summary
 
-This repository contains the complete implementation of a production-grade AI agent designed to represent **Anupama Nair** during the Scaler AI Engineer Intern application process. It operates across two primary modalities:
+This repository contains the complete implementation of a personal AI agent designed to represent **Anupama Nair** and help anyone — recruiters, collaborators, or curious visitors — get to know her. It operates across two primary modalities:
 1. **Web-Based Conversational UI:** A highly responsive Next.js application leveraging a specialized RAG pipeline to accurately communicate background, skills, and project experience.
 2. **Telephonic Voice Agent:** A real-time, low-latency conversational agent built on Vapi and ElevenLabs, capable of autonomous calendar orchestration via the Cal.com v2 API.
 
@@ -24,7 +24,7 @@ flowchart TD
         CHAT_API["/api/chat Route\n(Next.js App Router)"]
         RAG["Embedding & Retrieval Engine\n(FastAPI)"]
         CHROMA["Vector Database\n(ChromaDB)"]
-        LLM_TEXT["Anthropic Claude 3.5\n(Text LLM)"]
+        LLM_TEXT["Google Gemini 2.5 Flash\n(Text LLM)"]
 
         U1 -->|SSE Stream| UI
         UI -->|POST JSON| CHAT_API
@@ -35,7 +35,7 @@ flowchart TD
     end
 
     subgraph Voice["📞 Telephony & Booking Orchestration"]
-        U2["Recruiter / Caller"]
+        U2["Caller / Visitor"]
         VAPI_NUM["PSTN Gateway\n(Vapi)"]
         VAPI_ORCH["Speech-to-Text & Text-to-Speech\n(Deepgram / ElevenLabs)"]
         FUNC_SVC["Webhook API\n(Next.js Serverless)"]
@@ -55,8 +55,20 @@ flowchart TD
 
 *   **Asynchronous Webhook Orchestration:** Engineered robust serverless endpoints in Next.js (`/api/vapi/webhook/route.ts`) to handle Vapi tool-calling. This offloads calculation out-of-band and prevents gateway block timeouts during external calendar syncs.
 *   **Grounded RAG Pipeline:** Developed an offline ingestion pipeline that recursively parses codebase directories (`github_scraper.py`) and PDF assets (`resume_parser.py`), mapping semantic chunks into an isolated Chroma vector space. 
-*   **Theme Architecture:** Implemented a stunning, premium aesthetic ("Midnight Rose") utilizing advanced CSS variables, backdrop filtering, and glassmorphism techniques across the React UI.
-*   **Zero-Hallucination Design:** By enforcing strict context-window constraints and explicitly grounding the LLM via semantic search, the agent prevents anomalous data outputs regarding candidate qualifications.
+*   **Theme Architecture:** Implemented a premium "Aurora" aesthetic (cyan → indigo → teal on deep ink) with light/dark modes, utilizing advanced CSS variables, backdrop filtering, and glassmorphism across the React UI.
+*   **Zero-Hallucination Design:** By enforcing strict context-window constraints and explicitly grounding the LLM via semantic search, the agent prevents anomalous data outputs and surfaces the exact sources used for each answer.
+
+---
+
+## ✨ Interactive Features
+
+*   **Animated intro:** A 0→100 preloader (animated counter + progress + floating particles) reveals the chat on load.
+*   **Grounded answers with citations:** Each AI response shows the RAG sources it drew from (résumé section, GitHub repo, profile).
+*   **Live GitHub activity:** A panel fetches your most recently active public repositories on demand (`/api/github`).
+*   **Résumé download:** One-click PDF download served from `chat-ui/public/resume.pdf`.
+*   **Export conversation:** Save any chat as a Markdown transcript.
+*   **Light / dark theme toggle:** Persisted to `localStorage`.
+*   **Voice mode & live booking:** Browser voice calls (Vapi) and an inline Cal.com scheduling widget.
 
 ---
 
@@ -64,7 +76,7 @@ flowchart TD
 
 | Key Name | Where to get it | Used for |
 |----------|-----------------|----------|
-| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com) | Gemini 1.5 Flash — chat & voice LLM (or Anthropic Claude) |
+| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com) | Gemini 2.5 Flash — chat & voice LLM, plus text-embedding-004 for RAG embeddings |
 | `VAPI_API_KEY` | [dashboard.vapi.ai](https://dashboard.vapi.ai) | Creating / managing the voice assistant |
 | `VOICE_FUNCTIONS_URL` | Your Vercel deployment URL | Vapi webhook endpoint base URL |
 | `CAL_COM_API_KEY` | [cal.com/settings/developer/api-keys](https://cal.com/settings/developer/api-keys) | Fetching slots & creating bookings |
@@ -133,11 +145,50 @@ python create_assistant.py
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+GitHub Actions workflows live in `.github/workflows/`.
+
+### `ci.yml` — runs on every push & pull request to `main`
+Three parallel jobs keep the codebase green:
+
+| Job | What it does |
+|-----|--------------|
+| **Chat UI** | `npm ci` → `npm run lint` → `tsc --noEmit` → `next build` |
+| **RAG service** | Installs `rag/requirements.txt` and compiles all Python modules |
+| **Voice agent** | Installs `voice/requirements.txt`, validates `vapi_config.json`, compiles scripts |
+
+### `deploy.yml` — deploys the Chat UI to Vercel on push to `main`
+The deploy job builds and ships via the Vercel CLI. It is **safely gated**: if the
+Vercel secrets are not configured, the job skips instead of failing.
+
+Add these repository secrets under **Settings → Secrets and variables → Actions**:
+
+| Secret | Where to find it |
+|--------|------------------|
+| `VERCEL_TOKEN` | [vercel.com/account/tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | `.vercel/project.json` after running `vercel link` locally |
+| `VERCEL_PROJECT_ID` | `.vercel/project.json` after running `vercel link` locally |
+
+> If you rely on Vercel's native Git integration for deploys, you can delete
+> `deploy.yml` and keep `ci.yml` for checks only.
+
+---
+
+## 🎨 Theme
+
+The UI ships with the **Aurora** theme — a deep-ink background with cyan → indigo → teal
+gradients, glassmorphism surfaces, and animated background orbs. All colors are driven by
+CSS custom properties in `chat-ui/app/globals.css`, so the palette can be re-tuned from the
+`:root` block in one place.
+
+---
+
 ## 💰 Cost Breakdown
 
 | Component | Per event | Volume estimate | Monthly estimate |
 |-----------|-----------|-----------------|------------------|
-| Local sentence-transformers | $0 / 1M tokens | ~50K tokens one-time | **$0 one-time** |
+| Gemini text-embedding-004 | $0 / 1M tokens (free tier) | ~50K tokens one-time | **$0 one-time** |
 | LLM Text Generation | Free tier | ~2.5K tokens/message | **$0** |
 | Vapi orchestration | $0.05 / min | 3 min avg call | ~$0.15 / call |
 | ElevenLabs TTS | $0.30 / 1K chars | ~800 chars/turn | ~$0.04 / turn |
@@ -149,7 +200,7 @@ python create_assistant.py
 
 ## 📊 Evaluation & Benchmarks
 
-A comprehensive **AI Engineering Screening Evaluation Report** was generated for this system, achieving the following empirical benchmarks:
+A comprehensive **Evaluation Report** was generated for this system, achieving the following empirical benchmarks:
 
 *   **Retrieval Faithfulness:** `94.2%` (Scored via RAG Triad test scripts).
 *   **Synthesis TTFB:** `820ms` (End-to-end user latency recorded across text-to-speech loops).

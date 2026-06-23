@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same ref to save CI minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Next.js chat UI: lint, typecheck, build ────────────────────
+  chat-ui:
+    name: Chat UI (lint · typecheck · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chat-ui
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: chat-ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build must not depend on real secrets; routes read env at runtime.
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  # ─── RAG service: dependency resolution + compile check ─────────
+  rag:
+    name: RAG service (install · compile)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rag
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: rag/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile check
+        run: python -m compileall -q .
+
+  # ─── Voice agent scripts: compile check ─────────────────────────
+  voice:
+    name: Voice agent (install · compile)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: voice
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: voice/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate vapi_config.json
+        run: python -c "import json; json.load(open('vapi_config.json')); print('vapi_config.json is valid JSON')"
+
+      - name: Compile check
+        run: python -m compileall -q .

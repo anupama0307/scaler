@@ -19,7 +19,7 @@ RESEARCH:
 
 PROJECTS:
 1. RISKOFF — AI-powered FinTech application for real-time financial risk assessment. Uses ML models to analyze market data and user portfolio risk.
-2. LeafLift — Intelligent ride-matching platform with algorithmic optimization for carpooling and sustainability.
+2. LeafLift — Plant health AI that uses computer vision and deep learning to detect plant diseases from leaf images, helping farmers take early corrective action.
 3. GemChef — AI-powered meal planning assistant using Google Gemini API, personalized nutrition recommendations, and recipe generation.
 
 SKILLS:
@@ -29,8 +29,8 @@ SKILLS:
 - Cloud: AWS, GCP basics
 - Tools: Git, Docker, Jupyter
 
-WHY SCALER:
-Anupama is passionate about AI engineering at scale. Scaler's focus on practical, outcome-driven AI education perfectly aligns with her goal of building systems that have real-world impact. She brings research depth, full-stack AI skills, and a builder mindset.
+ABOUT & GOALS:
+Anupama is passionate about AI engineering and building intelligent systems that have real-world impact. She combines research depth, full-stack AI skills, and a hands-on builder mindset, and is always excited to take on new challenges in machine learning and applied AI.
 
 SCHEDULING:
 If asked about scheduling, booking a meeting, or an interview, Anupama (via this AI agent) is happy to schedule a call. Ask for the visitor's name and email to proceed.
@@ -47,10 +47,21 @@ function detectBookingIntent(message: string): boolean {
   return BOOKING_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
+// ─── Types ────────────────────────────────────────────────────────
+interface Source {
+  type: 'resume' | 'github' | 'persona' | 'context';
+  label: string;
+}
+
+interface RetrievalResult {
+  context: string;
+  sources: Source[];
+}
+
 // ─── RAG Retrieval ────────────────────────────────────────────────
-async function retrieveContext(query: string): Promise<string> {
+async function retrieveContext(query: string): Promise<RetrievalResult> {
   const ragUrl = process.env.RAG_SERVICE_URL;
-  if (!ragUrl) return FALLBACK_CONTEXT;
+  if (!ragUrl) return { context: FALLBACK_CONTEXT, sources: [] };
 
   try {
     const controller = new AbortController();
@@ -64,39 +75,58 @@ async function retrieveContext(query: string): Promise<string> {
     });
 
     clearTimeout(timeout);
-    if (!res.ok) return FALLBACK_CONTEXT;
+    if (!res.ok) return { context: FALLBACK_CONTEXT, sources: [] };
 
     const data = await res.json() as {
       chunks?: Array<{ content: string; metadata?: Record<string, string>; score?: number }>;
     };
     const chunks = data.chunks ?? [];
-    if (chunks.length === 0) return FALLBACK_CONTEXT;
+    if (chunks.length === 0) return { context: FALLBACK_CONTEXT, sources: [] };
 
-    return chunks
+    const sources: Source[] = [];
+    const seen = new Set<string>();
+
+    const context = chunks
       .slice(0, 5)
       .map((c, i) => {
         const source = c.metadata?.source ?? '';
-        const label =
-          source === 'resume'
-            ? `[Resume — ${c.metadata?.section ?? 'General'}]`
-            : source === 'github'
-            ? `[GitHub — ${c.metadata?.repo ?? ''}]`
-            : `[Context ${i + 1}]`;
-        return `${label}\n${c.content.trim()}`;
+        let type: Source['type'] = 'context';
+        let label = `Context ${i + 1}`;
+
+        if (source === 'resume') {
+          type = 'resume';
+          label = `Resume - ${c.metadata?.section ?? 'General'}`;
+        } else if (source === 'github') {
+          type = 'github';
+          label = `GitHub - ${c.metadata?.repo ?? 'repo'}`;
+        } else if (source === 'persona') {
+          type = 'persona';
+          label = `Profile - ${c.metadata?.section ?? 'Info'}`;
+        }
+
+        // De-duplicate identical source labels
+        if (!seen.has(label)) {
+          seen.add(label);
+          sources.push({ type, label });
+        }
+
+        return `[${label}]\n${c.content.trim()}`;
       })
       .join('\n\n');
+
+    return { context, sources };
   } catch {
-    return FALLBACK_CONTEXT;
+    return { context: FALLBACK_CONTEXT, sources: [] };
   }
 }
 
 // ─── System Prompt ────────────────────────────────────────────────
 function buildSystemPrompt(context: string, hasBookingIntent: boolean): string {
-  const base = `You are Anupama Nair's AI representative for the Scaler AI Engineer Intern role. Speak as her knowledgeable, enthusiastic representative — professional yet warm.
+  const base = `You are Anupama Nair's personal AI representative. Your job is to help anyone — recruiters, collaborators, friends, or curious visitors — get to know Anupama. Speak as her knowledgeable, enthusiastic representative — professional yet warm.
 
-Anupama Nair is a Computer Science undergraduate at Amrita Vishwa Vidyapeetham (2023–2027, CGPA 8.47). She has published research on forest fire prediction (PEIS 2026, Springer), built projects including RISKOFF (AI FinTech), LeafLift (ride matching), and GemChef (AI meal planning). She is currently a Visteon Scholar.
+Anupama Nair is a Computer Science undergraduate at Amrita Vishwa Vidyapeetham (2023–2027, CGPA 8.47). She has published research on forest fire prediction (PEIS 2026, Springer), built projects including RISKOFF (AI FinTech), LeafLift (plant disease detection), and GemChef (AI meal planning). She is currently a Visteon Scholar.
 
-Answer questions about her background, skills, projects, and fit for the Scaler AI Engineer Intern role based ONLY on the provided context. If you don't know something from the context, say so honestly. Never hallucinate facts. 
+Answer questions about her background, skills, projects, and research based ONLY on the provided context. If you don't know something from the context, say so honestly. Never hallucinate facts. 
 
 CRITICAL INSTRUCTION: When asked about her projects, research, or experience, DO NOT give short, one-paragraph summaries. You must provide detailed, well-structured, multi-paragraph explanations. Dive deep into the architecture, the specific technologies used, her exact contributions, and the real-world impact of the work. Use bullet points and bold text where appropriate to make your detailed responses easy to read.
 
@@ -127,7 +157,7 @@ export async function POST(req: NextRequest) {
 
     const context = await retrieveContext(userQuery);
     const hasBookingIntent = detectBookingIntent(userQuery);
-    const systemPrompt = buildSystemPrompt(context, hasBookingIntent);
+    const systemPrompt = buildSystemPrompt(context.context, hasBookingIntent);
 
     // @ai-sdk/google reads GOOGLE_GENERATIVE_AI_API_KEY automatically.
     // Support both env var names the user may have set.
@@ -167,6 +197,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Encode the RAG sources so the client can render citation chips.
+    const sourcesHeader = Buffer.from(JSON.stringify(context.sources)).toString('base64');
+
     return new Response(readable, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
@@ -174,6 +207,7 @@ export async function POST(req: NextRequest) {
         'Cache-Control': 'no-cache, no-transform',
         'X-Accel-Buffering': 'no',
         'X-Booking-Intent': hasBookingIntent ? 'true' : 'false',
+        'X-Sources': sourcesHeader,
       },
     });
   } catch (err) {

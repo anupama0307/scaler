@@ -43,7 +43,7 @@ function getNextNDays(n: number): { startTime: string; endTime: string } {
 // ─── GET: Fetch available slots ───────────────────────────────────
 export async function GET() {
   try {
-    const username = process.env.CAL_COM_USERNAME ?? 'anupama-nair';
+    const username = process.env.CAL_COM_USERNAME ?? 'anupama-nair-3rv2pu';
     const eventTypeSlug = process.env.CAL_COM_EVENT_TYPE_SLUG ?? 'scalar-interview';
     const { startTime, endTime } = getNextNDays(14);
 
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const username = process.env.CAL_COM_USERNAME ?? 'anupama-nair';
+    const username = process.env.CAL_COM_USERNAME ?? 'anupama-nair-3rv2pu';
     const eventTypeSlug = process.env.CAL_COM_EVENT_TYPE_SLUG ?? 'scalar-interview';
 
     const bookingPayload = {

@@ -5,7 +5,7 @@ FastAPI app that handles Vapi function-call webhooks.
 
 Supports two functions:
   - get_available_slots : fetches next 5 open slots from Cal.com for the
-                          'scaler-interview' event type.
+                          'scalar-interview' event type.
   - book_meeting        : creates a Cal.com booking with the caller's details.
 
 Run with:
