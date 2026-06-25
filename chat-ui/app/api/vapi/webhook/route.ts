@@ -64,7 +64,31 @@ async function bookMeeting(slotStart: string, name: string, email: string) {
     }),
   });
 
+  if (!res.ok) {
+    // Surface the Cal.com error so booking failures are debuggable in logs.
+    const errorText = await res.text().catch(() => '');
+    console.error('[/api/vapi/webhook] Cal.com booking failed:', res.status, errorText);
+  }
+
   return res.ok;
+}
+
+// Build the slot list given to the voice model. CRITICAL: each line includes
+// the exact ISO start value so the model can pass it back to book_meeting
+// verbatim. Without this the model has to guess the ISO timestamp and Cal.com
+// rejects the booking.
+function buildSlotsMessage(slots: string[]): string {
+  if (slots.length === 0) {
+    return 'No available slots found in the next 7 days. Tell the caller there is no current availability and ask them to check back later.';
+  }
+  const formatted = slots
+    .map((s, i) => `${i + 1}. ${formatSlot(s)} — exact start value: ${s}`)
+    .join('\n');
+  return (
+    `Here are the available slots:\n${formatted}\n\n` +
+    'Read the caller the friendly times and ask which one they prefer. ' +
+    'When you call book_meeting, you MUST pass the exact start value shown above for the chosen slot as slot_start — copy it verbatim, do not reformat, convert the timezone, or invent a value.'
+  );
 }
 
 // ─── Format ISO to human-readable ─────────────────────────────────
@@ -107,25 +131,26 @@ export async function POST(req: NextRequest) {
 
         if (name === 'get_available_slots') {
           const slots = await getSlots();
-          let resultMessage = '';
-          if (slots.length === 0) {
-            resultMessage = 'No available slots found in the next 7 days. Please ask the caller to check back later.';
-          } else {
-            const formatted = slots.map((s, i) => `${i + 1}. ${formatSlot(s)}`).join(', ');
-            resultMessage = `Here are the available slots: ${formatted}. Please ask the caller which one they prefer.`;
-          }
           results.push({
             toolCallId: call.id,
-            result: resultMessage
+            result: buildSlotsMessage(slots)
           });
         } else if (name === 'book_meeting') {
-          const { slot_start, caller_name, caller_email } = parameters;
-          const success = await bookMeeting(slot_start, caller_name, caller_email);
+          const { slot_start, caller_name, caller_email } = parameters ?? {};
+          const missing = [
+            ['slot_start', slot_start],
+            ['caller_name', caller_name],
+            ['caller_email', caller_email],
+          ].filter(([, v]) => !v).map(([k]) => k);
+
           let resultMessage = '';
-          if (success) {
-            resultMessage = `Great! I've successfully booked a meeting for ${caller_name} at ${formatSlot(slot_start)}. A confirmation has been sent to ${caller_email}. Is there anything else I can help you with?`;
+          if (missing.length > 0) {
+            resultMessage = `I still need the following before I can book: ${missing.join(', ')}. Please ask the caller for them. Remember slot_start must be the exact start value from the available slots list.`;
           } else {
-            resultMessage = 'I was unable to book that slot. It may have just been taken. Would you like to try a different time?';
+            const success = await bookMeeting(slot_start, caller_name, caller_email);
+            resultMessage = success
+              ? `Great! I've successfully booked a meeting for ${caller_name} at ${formatSlot(slot_start)}. A confirmation has been sent to ${caller_email}. Is there anything else I can help you with?`
+              : 'I was unable to book that slot. It may have just been taken, or the time was invalid. Offer to fetch the available slots again and try a different time.';
           }
           results.push({
             toolCallId: call.id,
@@ -143,19 +168,23 @@ export async function POST(req: NextRequest) {
 
       if (name === 'get_available_slots') {
         const slots = await getSlots();
-        if (slots.length === 0) {
-          return NextResponse.json({
-            result: 'No available slots found in the next 7 days. Please ask the caller to check back later.',
-          });
-        }
-        const formatted = slots.map((s, i) => `${i + 1}. ${formatSlot(s)}`).join(', ');
-        return NextResponse.json({
-          result: `Here are the available slots: ${formatted}. Please ask the caller which one they prefer.`,
-        });
+        return NextResponse.json({ result: buildSlotsMessage(slots) });
       }
 
       if (name === 'book_meeting') {
-        const { slot_start, caller_name, caller_email } = parameters;
+        const { slot_start, caller_name, caller_email } = parameters ?? {};
+        const missing = [
+          ['slot_start', slot_start],
+          ['caller_name', caller_name],
+          ['caller_email', caller_email],
+        ].filter(([, v]) => !v).map(([k]) => k);
+
+        if (missing.length > 0) {
+          return NextResponse.json({
+            result: `I still need the following before I can book: ${missing.join(', ')}. Please ask the caller for them. Remember slot_start must be the exact start value from the available slots list.`,
+          });
+        }
+
         const success = await bookMeeting(slot_start, caller_name, caller_email);
         if (success) {
           return NextResponse.json({
@@ -163,7 +192,7 @@ export async function POST(req: NextRequest) {
           });
         } else {
           return NextResponse.json({
-            result: 'I was unable to book that slot. It may have just been taken. Would you like to try a different time?',
+            result: 'I was unable to book that slot. It may have just been taken, or the time was invalid. Offer to fetch the available slots again and try a different time.',
           });
         }
       }
