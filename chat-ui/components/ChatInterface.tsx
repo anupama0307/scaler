@@ -42,6 +42,13 @@ const SUGGESTED_QUESTIONS = [
 
 const VAPI_ASSISTANT_ID = '54923852-d7e8-4697-a51c-c33f76bbaf2f';
 
+// ─── Contact links ────────────────────────────────────────────────
+const CONTACT = {
+  email: 'anupamanairmail@gmail.com',
+  linkedin: 'https://www.linkedin.com/in/anupama-vinod-nair',
+  github: 'https://github.com/anupama0307',
+};
+
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -148,6 +155,23 @@ function MoonIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zM8 19h-3v-11h3v11zm-1.5-12.27c-.97 0-1.75-.79-1.75-1.76s.78-1.75 1.75-1.75 1.75.79 1.75 1.75-.78 1.76-1.75 1.76zm13.5 12.27h-3v-5.6c0-1.34-.03-3.06-1.87-3.06-1.87 0-2.16 1.46-2.16 2.96v5.7h-3v-11h2.88v1.5h.04c.4-.76 1.38-1.56 2.84-1.56 3.04 0 3.6 2 3.6 4.6v6.46z" />
     </svg>
   );
 }
@@ -538,6 +562,26 @@ export default function ChatInterface() {
             <ExportIcon />
           </button>
 
+          <a
+            className="icon-btn contact-linkedin"
+            href={CONTACT.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Connect on LinkedIn"
+            aria-label="Anupama's LinkedIn"
+          >
+            <LinkedInIcon />
+          </a>
+
+          <a
+            className="icon-btn"
+            href={`mailto:${CONTACT.email}`}
+            title={`Email ${CONTACT.email}`}
+            aria-label="Email Anupama"
+          >
+            <MailIcon />
+          </a>
+
           <button
             className="theme-toggle-btn"
             onClick={toggleTheme}
@@ -603,6 +647,37 @@ export default function ChatInterface() {
                   {q}
                 </button>
               ))}
+            </div>
+
+            <div className="hero-contact" aria-label="Contact Anupama directly">
+              <span className="hero-contact-label">Prefer to reach out directly?</span>
+              <div className="hero-contact-links">
+                <a
+                  className="hero-contact-btn"
+                  href={`mailto:${CONTACT.email}`}
+                  aria-label="Email Anupama"
+                >
+                  <MailIcon /> Email
+                </a>
+                <a
+                  className="hero-contact-btn"
+                  href={CONTACT.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Anupama's LinkedIn"
+                >
+                  <LinkedInIcon /> LinkedIn
+                </a>
+                <a
+                  className="hero-contact-btn"
+                  href={CONTACT.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Anupama's GitHub"
+                >
+                  <GitHubIcon /> GitHub
+                </a>
+              </div>
             </div>
           </div>
         )}

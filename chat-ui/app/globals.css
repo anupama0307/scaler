@@ -1817,3 +1817,114 @@ textarea,
   .voice-call-btn { padding: 7px 12px; font-size: 0.74rem; }
   .header-actions { gap: 6px; }
 }
+
+/* ─── Hero Contact CTA ─────────────────────────────────────────── */
+.hero-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  animation: fade-in 0.6s ease 0.3s both;
+}
+
+.hero-contact-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.hero-contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.hero-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.hero-contact-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: rgba(34, 211, 238, 0.5);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
+}
+
+/* LinkedIn brand-tinted hover on the header icon */
+.icon-btn.contact-linkedin:hover {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* ─── Mobile Polish ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Let the header actions wrap instead of overflowing off-screen */
+  .chat-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    row-gap: 10px;
+  }
+  .header-actions {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  /* Shrink icon buttons for denser small-screen layout but keep tap target */
+  .icon-btn,
+  .theme-toggle-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .voice-call-btn {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+  .hero-state {
+    padding: 32px 18px;
+    gap: 16px;
+  }
+  .hero-avatar {
+    width: 78px;
+    height: 78px;
+    font-size: 28px;
+  }
+  .hero-subtitle {
+    font-size: 14px;
+  }
+  .hero-contact-links {
+    gap: 8px;
+  }
+  .hero-contact-btn {
+    padding: 8px 13px;
+    font-size: 12.5px;
+  }
+  .input-hint {
+    /* The ⌘ Enter hint is desktop-centric; downplay it on mobile */
+    opacity: 0.7;
+  }
+}
+
+/* Very small screens: collapse the voice button to icon + short label */
+@media (max-width: 380px) {
+  .voice-call-btn {
+    padding: 8px 10px;
+  }
+  .header-name {
+    font-size: 14px;
+  }
+}
